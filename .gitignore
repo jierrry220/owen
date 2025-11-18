@@ -1,6 +1,15 @@
-# 忽略 owner 文件夹中的所有文件
-*
+# OS files
+.DS_Store
+Thumbs.db
 
-# 除了这个 .gitignore 和 README.md
-!.gitignore
-!README.md
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*~

@@ -1,6 +1,11 @@
 {
   "name": "debear-party-owner-panel",
   "build": {
-    "outputDirectory": "."
+    "nodeVersion": "20"
+  },
+  "start": "node server.js",
+  "env": {
+    "NODE_ENV": "production",
+    "PORT": "3000"
   }
 }

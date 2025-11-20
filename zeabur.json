@@ -1,0 +1,6 @@
+{
+  "name": "debear-party-owner-panel",
+  "build": {
+    "outputDirectory": "."
+  }
+}

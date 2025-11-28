@@ -1133,6 +1133,9 @@
 
                 if (!data.success) throw new Error(data.error);
 
+                // 按时间倒序（最新在上）
+                const history = (data.data || []).slice().sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
                 let html = `
                     <table>
                         <thead>
@@ -1148,12 +1151,12 @@
                         <tbody>
                 `;
 
-                data.data.forEach(game => {
+                history.forEach(game => {
                     const timestamp = new Date(game.timestamp).toLocaleString('zh-CN');
                     html += `
                         <tr>
                             <td>#${game.gameId}</td>
-                            <td><span class="badge badge-danger">房间 ${game.killedRoom}</span></td>
+                            <td><span class=\"badge badge-danger\">房间 ${game.killedRoom}</span></td>
                             <td>${game.killedCount}</td>
                             <td>${game.survivorCount}</td>
                             <td><strong>${game.prizePool.toFixed(2)} DP</strong></td>

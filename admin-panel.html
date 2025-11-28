@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debear Party - 管理员控制面板</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #00c4ef;
+            --secondary: #e900e9;
+            --dark-bg: #0a0a0f;
+            --card-bg: #1a1a2e;
+            --text: #ffffff;
+            --text-secondary: #b0b0b0;
+            --success: #00ff88;
+            --warning: #ffaa00;
+            --danger: #ff4444;
+            --border: #2a2a3e;
+        }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--dark-bg);
+            color: var(--text);
+            line-height: 1.6;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        
+        input, textarea {
+            -webkit-user-select: text;
+            user-select: text;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            padding: 15px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        /* Login */
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 30px;
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+        }
+
+        .login-container h2 {
+            margin-bottom: 20px;
+            color: var(--primary);
+            font-size: 22px;
+        }
+        
+        @media (max-width: 768px) {
+            .login-container {
+                margin: 50px 15px;
+                padding: 25px 20px;
+            }
+            
+            .login-container h2 {
+                font-size: 20px;
+                margin-bottom: 15px;
+            }
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            background: var(--dark-bg);
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            color: var(--text);
+            font-size: 14px;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-height: 44px;
+            touch-action: manipulation;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,196,239,0.4);
+        }
+
+        .btn-secondary {
+            background: var(--card-bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: var(--dark-bg);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 15px;
+        }
+
+        /* Navigation */
+        .nav-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+        }
+        
+        .nav-tabs::-webkit-scrollbar {
+            height: 4px;
+        }
+        
+        .nav-tabs::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 2px;
+        }
+
+        .nav-tab {
+            padding: 10px 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s;
+            font-size: 14px;
+            min-width: fit-content;
+        }
+
+        .nav-tab:hover {
+            border-color: var(--primary);
+        }
+
+        .nav-tab.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-color: transparent;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .stat-card {
+            background: var(--dark-bg);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        /* Table */
+        .table-container {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin: 0 -15px;
+            padding: 0 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+
+        th, td {
+            padding: 10px 8px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+        }
+
+        th {
+            background: var(--dark-bg);
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        tr:hover {
+            background: rgba(0,196,239,0.05);
+        }
+
+        /* Game Control */
+        .room-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .room-card {
+            background: var(--dark-bg);
+            padding: 12px;
+            border-radius: 8px;
+            border: 2px solid var(--border);
+            cursor: pointer;
+            transition: all 0.3s;
+            min-height: 44px;
+            touch-action: manipulation;
+        }
+
+        .room-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .room-card.selected {
+            border-color: var(--success);
+            background: rgba(0,255,136,0.1);
+        }
+
+        .room-name {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .room-stat {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .game-status {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .status-betting { background: var(--success); color: var(--dark-bg); }
+        .status-killer { background: var(--danger); color: white; }
+        .status-settling { background: var(--warning); color: var(--dark-bg); }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 15px 20px;
+            min-width: 300px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+            z-index: 10000;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .toast.success { border-left: 4px solid var(--success); }
+        .toast.error { border-left: 4px solid var(--danger); }
+        .toast.warning { border-left: 4px solid var(--warning); }
+
+        /* Loading */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-bar input {
+            flex: 1;
+            padding: 12px;
+            background: var(--dark-bg);
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            color: var(--text);
+        }
+
+        .address {
+            font-family: monospace;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-success { background: var(--success); color: var(--dark-bg); }
+        .badge-danger { background: var(--danger); color: white; }
+        .badge-warning { background: var(--warning); color: var(--dark-bg); }
+        .badge-info { background: var(--primary); color: white; }
+
+        .countdown {
+            font-size: 36px;
+            font-weight: 700;
+            text-align: center;
+            color: var(--primary);
+            margin: 15px 0;
+        }
+
+        .control-warning {
+            background: rgba(255,170,0,0.1);
+            border: 1px solid var(--warning);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 18px;
+            }
+            
+            .header p {
+                font-size: 12px;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+            
+            .nav-tabs {
+                gap: 6px;
+                margin-bottom: 12px;
+            }
+            
+            .nav-tab {
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+            
+            .stat-card {
+                padding: 15px 12px;
+            }
+            
+            .stat-label {
+                font-size: 11px;
+            }
+            
+            .stat-value {
+                font-size: 22px;
+            }
+            
+            .room-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .room-card {
+                padding: 12px;
+            }
+            
+            .room-name {
+                font-size: 15px;
+            }
+            
+            .room-stat {
+                font-size: 13px;
+            }
+            
+            .countdown {
+                font-size: 32px;
+                margin: 12px 0;
+            }
+            
+            .card {
+                padding: 12px;
+                margin-bottom: 12px;
+            }
+            
+            .card-title {
+                font-size: 16px;
+                margin-bottom: 12px;
+            }
+            
+            .btn {
+                padding: 10px 18px;
+                font-size: 13px;
+            }
+            
+            .search-bar {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .search-bar input,
+            .search-bar select,
+            .search-bar button {
+                width: 100%;
+            }
+            
+            th, td {
+                padding: 8px 6px;
+                font-size: 12px;
+            }
+            
+            .address {
+                font-size: 10px;
+                word-break: break-all;
+            }
+            
+            .badge {
+                font-size: 11px;
+                padding: 3px 6px;
+            }
+            
+            .game-status {
+                font-size: 11px;
+                padding: 4px 10px;
+            }
+            
+            .control-warning {
+                padding: 12px;
+                font-size: 13px;
+            }
+            
+            .toast {
+                right: 10px;
+                bottom: 10px;
+                min-width: 250px;
+                padding: 12px 15px;
+                font-size: 13px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stat-value {
+                font-size: 24px;
+            }
+            
+            .countdown {
+                font-size: 28px;
+            }
+            
+            table {
+                min-width: 500px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen">
+        <div class="login-container">
+            <h2>🛡️ 管理员登录</h2>
+            <div class="form-group">
+                <label>API地址</label>
+                <input type="text" id="apiUrl" value="https://yhgl.zeabur.app/api/admin" placeholder="https://yhgl.zeabur.app/api/admin">
+            </div>
+            <div class="form-group">
+                <label>管理员密码</label>
+                <input type="password" id="adminPassword" placeholder="输入管理员密码">
+            </div>
+            <button class="btn btn-primary" onclick="login()">登录</button>
+        </div>
+    </div>
+
+    <!-- Main Panel -->
+    <div id="mainPanel" style="display: none;">
+        <div class="header">
+            <h1>🎮 Debear Party - 管理员控制面板</h1>
+            <p>实时监控和管理游戏平台</p>
+        </div>
+
+        <div class="container">
+            <!-- Navigation -->
+            <div class="nav-tabs">
+                <div class="nav-tab active" onclick="switchTab('dashboard')">📊 仪表盘</div>
+                <div class="nav-tab" onclick="switchTab('game-control')">🎯 游戏控制</div>
+                <div class="nav-tab" onclick="switchTab('users')">👥 用户管理</div>
+                <div class="nav-tab" onclick="switchTab('transactions')">💰 交易记录</div>
+                <div class="nav-tab" onclick="switchTab('game-history')">📜 游戏历史</div>
+                <div class="nav-tab" onclick="switchTab('system')">⚙️ 系统管理</div>
+            </div>
+
+            <!-- Dashboard Tab -->
+            <div id="dashboard" class="tab-content active">
+                <div class="card">
+                    <div class="card-title">📊 平台概况</div>
+                    <div class="stats-grid" id="dashboardStats"></div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">🎮 当前游戏状态</div>
+                    <div id="currentGameStatus"></div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">📈 交易统计</div>
+                    <div id="transactionStats"></div>
+                </div>
+            </div>
+
+            <!-- Game Control Tab -->
+            <div id="game-control" class="tab-content">
+                <div class="card">
+                    <div class="card-title">🎯 游戏全局控制</div>
+                    <div id="gameControlPanel"></div>
+                </div>
+            </div>
+
+            <!-- Users Tab -->
+            <div id="users" class="tab-content">
+                <div class="card">
+                    <div class="card-title">👥 用户列表</div>
+                    <div class="search-bar">
+                        <input type="text" id="userSearch" placeholder="搜索用户（UID、用户名、地址）">
+                        <button class="btn btn-primary" onclick="loadUsers()">搜索</button>
+                    </div>
+                    <div class="table-container" id="usersList"></div>
+                </div>
+            </div>
+
+            <!-- Transactions Tab -->
+            <div id="transactions" class="tab-content">
+                <div class="card">
+                    <div class="card-title">💰 交易记录</div>
+                    <div class="search-bar">
+                        <select id="txTypeFilter" style="padding: 12px; background: var(--dark-bg); border: 1px solid var(--border); border-radius: 5px; color: var(--text);">
+                            <option value="">所有类型</option>
+                            <option value="deposit">充值</option>
+                            <option value="withdraw">提现</option>
+                            <option value="spend">游戏消费</option>
+                            <option value="reward">游戏奖励</option>
+                        </select>
+                        <button class="btn btn-primary" onclick="loadTransactions()">筛选</button>
+                    </div>
+                    <div class="table-container" id="transactionsList"></div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">💵 平台收入统计</div>
+                    <div id="revenueStats"></div>
+                </div>
+            </div>
+
+            <!-- Game History Tab -->
+            <div id="game-history" class="tab-content">
+                <div class="card">
+                    <div class="card-title">📜 游戏历史记录</div>
+                    <div class="table-container" id="gameHistoryList"></div>
+                </div>
+            </div>
+
+            <!-- System Tab -->
+            <div id="system" class="tab-content">
+                <div class="card">
+                    <div class="card-title">⚙️ 系统管理</div>
+                    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                        <button class="btn btn-success" onclick="createBackup()">📦 创建备份</button>
+                        <button class="btn btn-secondary" onclick="loadConfig()">🔧 查看配置</button>
+                        <button class="btn btn-danger" onclick="logout()">🚪 退出登录</button>
+                    </div>
+                    <div id="systemInfo"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let API_BASE = '';
+        let ADMIN_PASSWORD = '';
+        let refreshInterval = null;
+        let selectedRoom = null;
+
+        // Login
+        function login() {
+            API_BASE = document.getElementById('apiUrl').value.trim();
+            ADMIN_PASSWORD = document.getElementById('adminPassword').value.trim();
+
+            if (!API_BASE || !ADMIN_PASSWORD) {
+                showToast('请填写完整信息', 'error');
+                return;
+            }
+
+            // Test connection
+            fetch(`${API_BASE}/dashboard?password=${ADMIN_PASSWORD}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('loginScreen').style.display = 'none';
+                        document.getElementById('mainPanel').style.display = 'block';
+                        showToast('登录成功', 'success');
+                        loadDashboard();
+                        startAutoRefresh();
+                    } else {
+                        showToast('登录失败: ' + data.error, 'error');
+                    }
+                })
+                .catch(err => {
+                    showToast('连接失败: ' + err.message, 'error');
+                });
+        }
+
+        function logout() {
+            if (confirm('确定要退出登录吗？')) {
+                stopAutoRefresh();
+                document.getElementById('loginScreen').style.display = 'block';
+                document.getElementById('mainPanel').style.display = 'none';
+                document.getElementById('adminPassword').value = '';
+            }
+        }
+
+        // Tab switching
+        function switchTab(tabName) {
+            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+
+            // Load data for the tab
+            switch(tabName) {
+                case 'dashboard':
+                    loadDashboard();
+                    break;
+                case 'game-control':
+                    loadGameControl();
+                    break;
+                case 'users':
+                    loadUsers();
+                    break;
+                case 'transactions':
+                    loadTransactions();
+                    loadRevenue();
+                    break;
+                case 'game-history':
+                    loadGameHistory();
+                    break;
+                case 'system':
+                    loadConfig();
+                    break;
+            }
+        }
+
+        // Dashboard
+        async function loadDashboard() {
+            try {
+                const res = await fetch(`${API_BASE}/dashboard?password=${ADMIN_PASSWORD}`);
+                const data = await res.json();
+
+                if (!data.success) throw new Error(data.error);
+
+                // Stats
+                const stats = `
+                    <div class="stat-card">
+                        <div class="stat-label">总用户数</div>
+                        <div class="stat-value">${data.data.users.total}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">活跃用户</div>
+                        <div class="stat-value">${data.data.users.active}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">在线玩家</div>
+                        <div class="stat-value">${data.data.users.online}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">平台总余额</div>
+                        <div class="stat-value">${data.data.balance.total.toFixed(2)} DP</div>
+                    </div>
+                `;
+                document.getElementById('dashboardStats').innerHTML = stats;
+
+                // Current game
+                if (data.data.currentGame) {
+                    const game = data.data.currentGame;
+                    const phaseText = game.phase === 'betting' ? '投注中' : game.phase === 'killer_moving' ? '杀手行动' : '结算中';
+                    const phaseClass = game.phase === 'betting' ? 'status-betting' : game.phase === 'killer_moving' ? 'status-killer' : 'status-settling';
+                    
+                    const gameStatus = `
+                        <div><span class="game-status ${phaseClass}">${phaseText}</span> 游戏 #${game.gameId}</div>
+                        <div class="countdown">${game.countdown}s</div>
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-label">真实玩家</div>
+                                <div class="stat-value">${game.playerCount}</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Bot数量</div>
+                                <div class="stat-value">${game.botCount}</div>
+                            </div>
+                        </div>
+                    `;
+                    document.getElementById('currentGameStatus').innerHTML = gameStatus;
+                } else {
+                    document.getElementById('currentGameStatus').innerHTML = '<p>暂无进行中的游戏</p>';
+                }
+
+                // Transaction stats
+                const txStats = `
+                    <h4>今日</h4>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-label">充值</div>
+                            <div class="stat-value">${data.data.transactions.today.deposit.toFixed(2)} DP</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">提现</div>
+                            <div class="stat-value">${data.data.transactions.today.withdraw.toFixed(2)} DP</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">游戏消费</div>
+                            <div class="stat-value">${data.data.transactions.today.spend.toFixed(2)} DP</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">游戏奖励</div>
+                            <div class="stat-value">${data.data.transactions.today.reward.toFixed(2)} DP</div>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('transactionStats').innerHTML = txStats;
+
+            } catch (err) {
+                showToast('加载仪表盘失败: ' + err.message, 'error');
+            }
+        }
+
+        // Game Control
+        async function loadGameControl() {
+            try {
+                const res = await fetch(`${API_BASE}/party-crisis/current?password=${ADMIN_PASSWORD}`);
+                const data = await res.json();
+
+                if (!data.success) throw new Error(data.error);
+
+                if (!data.data) {
+                    document.getElementById('gameControlPanel').innerHTML = '<p>暂无进行中的游戏</p>';
+                    return;
+                }
+
+                const game = data.data;
+                const phaseText = game.phase === 'betting' ? '投注中' : game.phase === 'killer_moving' ? '杀手行动' : '结算中';
+                const phaseClass = game.phase === 'betting' ? 'status-betting' : game.phase === 'killer_moving' ? 'status-killer' : 'status-settling';
+
+                let controlPanel = `
+                    <div><span class="game-status ${phaseClass}">${phaseText}</span> 游戏 #${game.gameId}</div>
+                    <div class="countdown">${game.countdown}s</div>
+                `;
+
+                if (game.canControlTarget) {
+                    if (game.adminTargetRoom) {
+                        controlPanel += `
+                            <div class="control-warning">
+                                ✅ 已设置目标房间: <strong>房间${game.adminTargetRoom}</strong> - 倒计时结束后生效
+                            </div>
+                        `;
+                    } else {
+                        controlPanel += `
+                            <div class="control-warning">
+                                🎯 投注阶段，可以手动选择当局杀手刺杀的目标房间。请选择一个房间：
+                            </div>
+                        `;
+                    }
+                } else if (game.phase === 'killer_moving') {
+                    controlPanel += `
+                        <div style="text-align: center; padding: 20px; color: var(--text-secondary);">
+                            杀手正在行动，无法修改目标房间...
+                        </div>
+                    `;
+                }
+
+                // Room grid
+                controlPanel += '<div class="room-grid">';
+                for (let roomId = 1; roomId <= 8; roomId++) {
+                    const room = game.roomDetails[roomId];
+                    const isSelected = selectedRoom === roomId;
+                    controlPanel += `
+                        <div class="room-card ${isSelected ? 'selected' : ''}" onclick="selectTargetRoom(${roomId}, ${game.canControlTarget})">
+                            <div class="room-name">${room.name}</div>
+                            <div class="room-stat">
+                                <span>真实玩家:</span>
+                                <span>${room.playerCount}人 (${room.playerBet.toFixed(0)} DP)</span>
+                            </div>
+                            <div class="room-stat">
+                                <span>Bot:</span>
+                                <span>${room.botCount}个 (${room.botBet.toFixed(0)} DP)</span>
+                            </div>
+                            <div class="room-stat" style="font-weight: 600; color: var(--primary);">
+                                <span>总投注:</span>
+                                <span>${room.totalBet.toFixed(0)} DP</span>
+                            </div>
+                        </div>
+                    `;
+                }
+                controlPanel += '</div>';
+
+                if (game.canControlTarget && selectedRoom) {
+                    controlPanel += `
+                        <button class="btn btn-danger" style="width: 100%; margin-top: 20px;" onclick="setTargetRoom()">
+                            🎯 设置房间${selectedRoom}为目标
+                        </button>
+                    `;
+                }
+
+                document.getElementById('gameControlPanel').innerHTML = controlPanel;
+
+            } catch (err) {
+                showToast('加载游戏控制失败: ' + err.message, 'error');
+            }
+        }
+
+        function selectTargetRoom(roomId, canControl) {
+            if (!canControl) {
+                showToast('现在还不能控制目标房间', 'warning');
+                return;
+            }
+            selectedRoom = roomId;
+            loadGameControl();
+        }
+
+        async function setTargetRoom() {
+            if (!selectedRoom) {
+                showToast('请选择一个房间', 'warning');
+                return;
+            }
+
+            if (!confirm(`确定要将房间${selectedRoom}设置为杀手目标吗？`)) {
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/party-crisis/set-target?password=${ADMIN_PASSWORD}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ roomId: selectedRoom })
+                });
+                const data = await res.json();
+
+                if (!data.success) throw new Error(data.error);
+
+                showToast('✅ 目标房间设置成功！', 'success');
+                selectedRoom = null;
+                loadGameControl();
+
+            } catch (err) {
+                showToast('设置失败: ' + err.message, 'error');
+            }
+        }
+
+        // Users
+        async function loadUsers() {
+            const search = document.getElementById('userSearch').value;
+            try {
+                const res = await fetch(`${API_BASE}/users?password=${ADMIN_PASSWORD}&search=${search}&limit=50`);
+                const data = await res.json();
+
+                if (!data.success) throw new Error(data.error);
+
+                let html = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>UID</th>
+                                <th>用户名</th>
+                                <th>地址</th>
+                                <th>余额</th>
+                                <th>注册时间</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                data.data.users.forEach(user => {
+                    const createdAt = new Date(user.createdAt).toLocaleString('zh-CN');
+                    html += `
+                        <tr style="cursor: pointer;" onclick="viewUserDetail('${user.address}')">
+                            <td>${user.uid || '--'}</td>
+                            <td>${user.username || '<span class="badge badge-warning">未设置</span>'}</td>
+                            <td class="address">${user.address}</td>
+                            <td><strong>${user.balance.toFixed(2)} DP</strong></td>
+                            <td>${createdAt}</td>
+                        </tr>
+                    `;
+                });
+
+                html += '</tbody></table>';
+                document.getElementById('usersList').innerHTML = html;
+
+            } catch (err) {
+                showToast('加载用户列表失败: ' + err.message, 'error');
+            }
+        }
+
+        async function viewUserDetail(address) {
+            try {
+                const res = await fetch(`${API_BASE}/users/${address}?password=${ADMIN_PASSWORD}`);
+                const data = await res.json();
+
+                if (!data.success) throw new Error(data.error);
+
+                const user = data.data.user;
+                const stats = data.data.statistics;
+                
+                alert(`用户详情\n\n` +
+                    `UID: ${user.uid}\n` +
+                    `用户名: ${user.username || '未设置'}\n` +
+                    `地址: ${user.address}\n` +
+                    `余额: ${user.balance.toFixed(2)} DP\n\n` +
+                    `统计:\n` +
+                    `总充值: ${stats.totalDeposit.toFixed(2)} DP\n` +
+                    `总提现: ${stats.totalWithdraw.toFixed(2)} DP\n` +
+                    `游戏消费: ${stats.totalSpend.toFixed(2)} DP\n` +
+                    `游戏奖励: ${stats.totalReward.toFixed(2)} DP\n` +
+                    `盈亏: ${stats.profit.toFixed(2)} DP`
+                );
+
+            } catch (err) {
+                showToast('加载用户详情失败: ' + err.message, 'error');
+            }
+        }
+
+        // Transactions
+        async function loadTransactions() {
+            const typeFilter = document.getElementById('txTypeFilter').value;
+            try {
+                const res = await fetch(`${API_BASE}/transactions?password=${ADMIN_PASSWORD}&type=${typeFilter}&limit=100`);
+                const data = await res.json();
+
+                if (!data.success) throw new Error(data.error);
+
+                let html = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>类型</th>
+                                <th>地址</th>
+                                <th>金额</th>
+                                <th>时间</th>
+                                <th>状态</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                data.data.transactions.forEach(tx => {
+                    const typeText = {
+                        'deposit': '充值',
+                        'withdraw': '提现',
+                        'spend': '消费',
+                        'reward': '奖励'
+                    }[tx.type] || tx.type;
+                    
+                    const badgeClass = tx.type === 'deposit' || tx.type === 'reward' ? 'badge-success' : 'badge-danger';
+                    const timestamp = new Date(tx.timestamp * 1000).toLocaleString('zh-CN');
+
+                    html += `
+                        <tr>
+                            <td><span class="badge ${badgeClass}">${typeText}</span></td>
+                            <td class="address">${tx.address}</td>
+                            <td><strong>${tx.amount.toFixed(2)} DP</strong></td>
+                            <td>${timestamp}</td>
+                            <td>${tx.status}</td>
+                        </tr>
+                    `;
+                });
+
+                html += '</tbody></table>';
+                document.getElementById('transactionsList').innerHTML = html;
+
+            } catch (err) {
+                showToast('加载交易记录失败: ' + err.message, 'error');
+            }
+        }
+
+        async function loadRevenue() {
+            try {
+                const res = await fetch(`${API_BASE}/revenue?password=${ADMIN_PASSWORD}`);
+                const data = await res.json();
+
+                if (!data.success) throw new Error(data.error);
+
+                const html = `
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-label">总游戏消费</div>
+                            <div class="stat-value">${data.data.totalSpend.toFixed(2)} DP</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">总游戏奖励</div>
+                            <div class="stat-value">${data.data.totalReward.toFixed(2)} DP</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">平台净收入</div>
+                            <div class="stat-value" style="color: var(--success);">${data.data.platformRevenue.toFixed(2)} DP</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">预估手续费 (10%)</div>
+                            <div class="stat-value">${data.data.estimatedFee.toFixed(2)} DP</div>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('revenueStats').innerHTML = html;
+
+            } catch (err) {
+                showToast('加载收入统计失败: ' + err.message, 'error');
+            }
+        }
+
+        // Game History
+        async function loadGameHistory() {
+            try {
+                const res = await fetch(`${API_BASE}/party-crisis/history?password=${ADMIN_PASSWORD}&limit=100`);
+                const data = await res.json();
+
+                if (!data.success) throw new Error(data.error);
+
+                let html = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>游戏ID</th>
+                                <th>被杀房间</th>
+                                <th>死亡人数</th>
+                                <th>幸存人数</th>
+                                <th>奖池</th>
+                                <th>时间</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                data.data.forEach(game => {
+                    const timestamp = new Date(game.timestamp).toLocaleString('zh-CN');
+                    html += `
+                        <tr>
+                            <td>#${game.gameId}</td>
+                            <td><span class="badge badge-danger">房间 ${game.killedRoom}</span></td>
+                            <td>${game.killedCount}</td>
+                            <td>${game.survivorCount}</td>
+                            <td><strong>${game.prizePool.toFixed(2)} DP</strong></td>
+                            <td>${timestamp}</td>
+                        </tr>
+                    `;
+                });
+
+                html += '</tbody></table>';
+                document.getElementById('gameHistoryList').innerHTML = html;
+
+            } catch (err) {
+                showToast('加载游戏历史失败: ' + err.message, 'error');
+            }
+        }
+
+        // System
+        async function loadConfig() {
+            try {
+                const res = await fetch(`${API_BASE}/config?password=${ADMIN_PASSWORD}`);
+                const data = await res.json();
+
+                if (!data.success) throw new Error(data.error);
+
+                const html = `
+                    <h4>Party Crisis 配置</h4>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-label">投注时长</div>
+                            <div class="stat-value">${data.data.partyCrisis.bettingDuration}s</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">杀手时长</div>
+                            <div class="stat-value">${data.data.partyCrisis.killerDuration}s</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">结算时长</div>
+                            <div class="stat-value">${data.data.partyCrisis.settlingDuration}s</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">平台费率</div>
+                            <div class="stat-value">${(data.data.partyCrisis.platformFee * 100).toFixed(0)}%</div>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('systemInfo').innerHTML = html;
+
+            } catch (err) {
+                showToast('加载配置失败: ' + err.message, 'error');
+            }
+        }
+
+        async function createBackup() {
+            if (!confirm('确定要创建数据备份吗？')) return;
+
+            try {
+                const res = await fetch(`${API_BASE}/backup?password=${ADMIN_PASSWORD}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await res.json();
+
+                if (!data.success) throw new Error(data.error);
+
+                showToast('✅ 备份创建成功: ' + data.data.filename, 'success');
+
+            } catch (err) {
+                showToast('创建备份失败: ' + err.message, 'error');
+            }
+        }
+
+        // Auto refresh
+        function startAutoRefresh() {
+            refreshInterval = setInterval(() => {
+                const activeTab = document.querySelector('.tab-content.active').id;
+                
+                switch(activeTab) {
+                    case 'dashboard':
+                        loadDashboard();
+                        break;
+                    case 'game-control':
+                        loadGameControl();
+                        break;
+                }
+            }, 3000); // Refresh every 3 seconds
+        }
+
+        function stopAutoRefresh() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+                refreshInterval = null;
+            }
+        }
+
+        // Toast
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.animation = 'slideIn 0.3s ease reverse';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

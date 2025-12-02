@@ -597,6 +597,7 @@
                 <div class="nav-tab" onclick="switchTab('game-control')">🎯 游戏控制</div>
                 <div class="nav-tab" onclick="switchTab('users')">👥 用户管理</div>
                 <div class="nav-tab" onclick="switchTab('transactions')">💰 交易记录</div>
+                <div class="nav-tab" onclick="switchTab('withdraw-reviews')">🔍 提现审核</div>
                 <div class="nav-tab" onclick="switchTab('game-history')">📜 游戏历史</div>
                 <div class="nav-tab" onclick="switchTab('system')">⚙️ 系统管理</div>
             </div>
@@ -624,6 +625,52 @@
                 <div class="card">
                     <div class="card-title">🎯 游戏全局控制</div>
                     <div id="gameControlPanel"></div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-title">🤖 Bot 配置管理</div>
+                    <div id="botConfigPanel">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                            <div>
+                                <label style="display: block; margin-bottom: 8px; color: var(--text); font-weight: 600;">Bot 数量范围</label>
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <input type="number" id="botCountMin" placeholder="最小值" min="0" style="flex: 1; padding: 10px; background: var(--dark-bg); border: 1px solid var(--border); border-radius: 5px; color: var(--text);">
+                                    <span style="color: var(--text-secondary);">至</span>
+                                    <input type="number" id="botCountMax" placeholder="最大值" min="0" style="flex: 1; padding: 10px; background: var(--dark-bg); border: 1px solid var(--border); border-radius: 5px; color: var(--text);">
+                                </div>
+                                <small style="color: var(--text-secondary); margin-top: 5px; display: block;">每局游戏随机生成的Bot数量范围</small>
+                            </div>
+                            
+                            <div>
+                                <label style="display: block; margin-bottom: 8px; color: var(--text); font-weight: 600;">每房间投注额范围 (DP)</label>
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <input type="number" id="roomBetMin" placeholder="最小值" min="0" style="flex: 1; padding: 10px; background: var(--dark-bg); border: 1px solid var(--border); border-radius: 5px; color: var(--text);">
+                                    <span style="color: var(--text-secondary);">至</span>
+                                    <input type="number" id="roomBetMax" placeholder="最大值" min="0" style="flex: 1; padding: 10px; background: var(--dark-bg); border: 1px solid var(--border); border-radius: 5px; color: var(--text);">
+                                </div>
+                                <small style="color: var(--text-secondary); margin-top: 5px; display: block;">每个房间Bot总投注额范围</small>
+                            </div>
+                            
+                            <div>
+                                <label style="display: block; margin-bottom: 8px; color: var(--text); font-weight: 600;">单个Bot投注额范围 (DP)</label>
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <input type="number" id="botBetMin" placeholder="最小值" min="0" style="flex: 1; padding: 10px; background: var(--dark-bg); border: 1px solid var(--border); border-radius: 5px; color: var(--text);">
+                                    <span style="color: var(--text-secondary);">至</span>
+                                    <input type="number" id="botBetMax" placeholder="最大值" min="0" style="flex: 1; padding: 10px; background: var(--dark-bg); border: 1px solid var(--border); border-radius: 5px; color: var(--text);">
+                                </div>
+                                <small style="color: var(--text-secondary); margin-top: 5px; display: block;">每个Bot的投注额范围</small>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-primary" onclick="saveBotConfig()" style="flex: 1;">💾 保存配置</button>
+                            <button class="btn btn-secondary" onclick="loadBotConfig()" style="flex: 1;">🔄 重新加载</button>
+                        </div>
+                        
+                        <div style="margin-top: 15px; padding: 15px; background: rgba(255, 193, 7, 0.1); border: 1px solid rgba(255, 193, 7, 0.3); border-radius: 5px; color: var(--warning);">
+                            ⚠️ <strong>注意：</strong>配置修改将在下一局游戏开始时生效
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -659,6 +706,28 @@
                 <div class="card">
                     <div class="card-title">💵 平台收入统计</div>
                     <div id="revenueStats"></div>
+                </div>
+            </div>
+
+            <!-- Withdraw Reviews Tab -->
+            <div id="withdraw-reviews" class="tab-content">
+                <div class="card">
+                    <div class="card-title">🔍 待审核提现列表</div>
+                    <div class="search-bar">
+                        <select id="reviewStatusFilter" style="padding: 12px; background: var(--dark-bg); border: 1px solid var(--border); border-radius: 5px; color: var(--text);">
+                            <option value="pending">待审核</option>
+                            <option value="approved">已通过</option>
+                            <option value="rejected">已拒绝</option>
+                            <option value="all">全部</option>
+                        </select>
+                        <button class="btn btn-primary" onclick="loadWithdrawReviews()">刷新</button>
+                    </div>
+                    <div class="table-container" id="withdrawReviewsList"></div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">📊 提现安全统计</div>
+                    <div id="withdrawSecurityStats"></div>
                 </div>
             </div>
 
@@ -966,14 +1035,127 @@
             }
         }
 
+        // Bot Configuration
+        async function loadBotConfig() {
+            try {
+                const res = await fetch(`${API_BASE}/party-crisis/bot-config?password=${ADMIN_PASSWORD}`);
+                const data = await res.json();
+
+                if (!data.success) throw new Error(data.error);
+
+                // Fill form with current values
+                document.getElementById('botCountMin').value = data.data.botCountMin;
+                document.getElementById('botCountMax').value = data.data.botCountMax;
+                document.getElementById('roomBetMin').value = data.data.roomBetMin;
+                document.getElementById('roomBetMax').value = data.data.roomBetMax;
+                document.getElementById('botBetMin').value = data.data.botBetMin;
+                document.getElementById('botBetMax').value = data.data.botBetMax;
+
+                showToast('🔄 Bot配置加载成功', 'success');
+
+            } catch (err) {
+                showToast('加载配置失败: ' + err.message, 'error');
+            }
+        }
+
+        async function saveBotConfig() {
+            const botCountMin = parseInt(document.getElementById('botCountMin').value);
+            const botCountMax = parseInt(document.getElementById('botCountMax').value);
+            const roomBetMin = parseInt(document.getElementById('roomBetMin').value);
+            const roomBetMax = parseInt(document.getElementById('roomBetMax').value);
+            const botBetMin = parseInt(document.getElementById('botBetMin').value);
+            const botBetMax = parseInt(document.getElementById('botBetMax').value);
+
+            // Validation
+            if (isNaN(botCountMin) || isNaN(botCountMax) || isNaN(roomBetMin) || isNaN(roomBetMax) || isNaN(botBetMin) || isNaN(botBetMax)) {
+                showToast('请填写所有配置项', 'error');
+                return;
+            }
+
+            if (botCountMin < 0 || botCountMax < 0 || roomBetMin < 0 || roomBetMax < 0 || botBetMin < 0 || botBetMax < 0) {
+                showToast('配置值不能为负数', 'error');
+                return;
+            }
+
+            if (botCountMax < botCountMin) {
+                showToast('Bot数量最大值不能小于最小值', 'error');
+                return;
+            }
+
+            if (roomBetMax < roomBetMin) {
+                showToast('房间投注额最大值不能小于最小值', 'error');
+                return;
+            }
+            
+            if (botBetMax < botBetMin) {
+                showToast('单个Bot投注额最大值不能小于最小值', 'error');
+                return;
+            }
+
+            if (!confirm('确定要保存Bot配置吗？修改将在下一局游戏开始时生效。')) {
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/party-crisis/bot-config?password=${ADMIN_PASSWORD}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        botCountMin,
+                        botCountMax,
+                        roomBetMin,
+                        roomBetMax,
+                        botBetMin,
+                        botBetMax
+                    })
+                });
+                const data = await res.json();
+
+                if (!data.success) throw new Error(data.error);
+
+                showToast('✅ Bot配置保存成功！将在下一局游戏生效', 'success');
+                
+                // 刷新显示
+                loadBotConfig();
+
+            } catch (err) {
+                showToast('保存配置失败: ' + err.message, 'error');
+            }
+        }
+
         // Users
         async function loadUsers() {
             const search = document.getElementById('userSearch').value;
+            
+            // 显示加载中
+            document.getElementById('usersList').innerHTML = '<div style="text-align: center; padding: 40px;"><div class="loading" style="margin: 0 auto;"></div><p style="margin-top: 15px; color: var(--text-secondary);">加载用户数据中...</p></div>';
+            
             try {
                 const res = await fetch(`${API_BASE}/users?password=${ADMIN_PASSWORD}&search=${search}&limit=50`);
                 const data = await res.json();
 
                 if (!data.success) throw new Error(data.error);
+                
+                if (data.data.users.length === 0) {
+                    document.getElementById('usersList').innerHTML = '<p style="text-align: center; padding: 40px; color: var(--text-secondary);">暂无用户数据</p>';
+                    return;
+                }
+
+                // 获取每个用户的详细统计（并行请求）
+                const usersWithStats = await Promise.all(
+                    data.data.users.map(async (user) => {
+                        try {
+                            const detailRes = await fetch(`${API_BASE}/users/${user.address}?password=${ADMIN_PASSWORD}`);
+                            const detailData = await detailRes.json();
+                            return {
+                                ...user,
+                                stats: detailData.success ? detailData.data.statistics : null
+                            };
+                        } catch (err) {
+                            return { ...user, stats: null };
+                        }
+                    })
+                );
 
                 let html = `
                     <table>
@@ -983,21 +1165,36 @@
                                 <th>用户名</th>
                                 <th>地址</th>
                                 <th>余额</th>
+                                <th>总充值</th>
+                                <th>总提现</th>
+                                <th>盈亏</th>
                                 <th>注册时间</th>
                             </tr>
                         </thead>
                         <tbody>
                 `;
 
-                data.data.users.forEach(user => {
+                usersWithStats.forEach(user => {
                     const createdAt = new Date(user.createdAt).toLocaleString('zh-CN');
+                    
+                    // 统计数据
+                    const totalDeposit = user.stats ? user.stats.totalDeposit.toFixed(2) : '--';
+                    const totalWithdraw = user.stats ? user.stats.totalWithdraw.toFixed(2) : '--';
+                    const profit = user.stats ? user.stats.profit : 0;
+                    const profitDisplay = user.stats ? profit.toFixed(2) : '--';
+                    const profitColor = profit > 0 ? 'var(--success)' : (profit < 0 ? 'var(--danger)' : 'var(--text)');
+                    const profitSign = profit > 0 ? '+' : '';
+                    
                     html += `
                         <tr style="cursor: pointer;" onclick="viewUserDetail('${user.address}')">
                             <td>${user.uid || '--'}</td>
                             <td>${user.username || '<span class="badge badge-warning">未设置</span>'}</td>
                             <td class="address">${user.address}</td>
                             <td><strong>${user.balance.toFixed(2)} DP</strong></td>
-                            <td>${createdAt}</td>
+                            <td style="color: var(--success);">${totalDeposit} DP</td>
+                            <td style="color: var(--danger);">${totalWithdraw} DP</td>
+                            <td style="color: ${profitColor}; font-weight: 600;">${profitSign}${profitDisplay} DP</td>
+                            <td style="font-size: 12px;">${createdAt}</td>
                         </tr>
                     `;
                 });
@@ -1173,6 +1370,204 @@
             }
         }
 
+        // Withdraw Reviews
+        async function loadWithdrawReviews() {
+            try {
+                const status = document.getElementById('reviewStatusFilter').value;
+                const res = await fetch(`${API_BASE}/withdraw-reviews?status=${status}&password=${ADMIN_PASSWORD}`);
+                const data = await res.json();
+
+                if (!data.success) throw new Error(data.error);
+
+                const reviews = data.data.reviews;
+                
+                if (reviews.length === 0) {
+                    document.getElementById('withdrawReviewsList').innerHTML = '<p style="text-align: center; padding: 40px; color: var(--text-secondary);">暂无数据</p>';
+                    return;
+                }
+
+                let html = '<table><thead><tr>';
+                html += '<th>审核ID</th><th>用户信息</th><th>金额</th><th>原因</th><th>状态</th><th>时间</th><th>操作</th>';
+                html += '</tr></thead><tbody>';
+
+                reviews.forEach(review => {
+                    const time = new Date(review.createdAt).toLocaleString('zh-CN');
+                    const statusBadge = {
+                        'pending': '<span class="badge badge-warning">待审核</span>',
+                        'approved': '<span class="badge badge-success">已通过</span>',
+                        'rejected': '<span class="badge badge-danger">已拒绝</span>'
+                    }[review.status] || '<span class="badge">未知</span>';
+
+                    const userDisplay = review.userInfo ? 
+                        `<div><strong>${review.userInfo.username || '未设置'}</strong></div>
+                         <div class="address">${review.address.substring(0, 10)}...</div>
+                         <div style="font-size: 11px;">UID: ${review.userInfo.uid}</div>` :
+                        `<div class="address">${review.address}</div>`;
+
+                    const actionButtons = review.status === 'pending' ?
+                        `<button class="btn btn-success" style="padding: 6px 12px; font-size: 12px; margin-right: 5px;" onclick="approveWithdraw('${review.id}')">✓ 通过</button>
+                         <button class="btn btn-danger" style="padding: 6px 12px; font-size: 12px;" onclick="rejectWithdraw('${review.id}')">✗ 拒绝</button>` :
+                        `<button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="viewReviewDetail('${review.id}')">查看详情</button>`;
+
+                    html += `
+                        <tr>
+                            <td style="font-size: 11px; color: var(--text-secondary);">${review.id.substring(0, 20)}...</td>
+                            <td>${userDisplay}</td>
+                            <td><strong>${review.amount.toFixed(2)} DP</strong><br><span style="font-size: 11px;">余额: ${review.currentBalance.toFixed(2)}</span></td>
+                            <td style="max-width: 200px; font-size: 12px;">${review.reason}</td>
+                            <td>${statusBadge}</td>
+                            <td style="font-size: 12px;">${time}</td>
+                            <td>${actionButtons}</td>
+                        </tr>
+                    `;
+                });
+
+                html += '</tbody></table>';
+                document.getElementById('withdrawReviewsList').innerHTML = html;
+
+                // 加载统计数据
+                loadWithdrawSecurityStats();
+
+            } catch (err) {
+                showToast('加载待审核提现失败: ' + err.message, 'error');
+            }
+        }
+
+        async function loadWithdrawSecurityStats() {
+            try {
+                const res = await fetch(`${API_BASE}/withdraw-security/stats?password=${ADMIN_PASSWORD}`);
+                const data = await res.json();
+
+                if (!data.success) throw new Error(data.error);
+
+                const stats = data.data;
+                const html = `
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-label">待审核数量</div>
+                            <div class="stat-value">${stats.pendingReviewsCount}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">提现冷却时间</div>
+                            <div class="stat-value">${(stats.config.WITHDRAW_COOLDOWN / 60000).toFixed(0)} 分钟</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">每日提现次数限制</div>
+                            <div class="stat-value">${stats.config.DAILY_WITHDRAW_LIMIT} 次</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">每日提现金额上限</div>
+                            <div class="stat-value">${stats.config.DAILY_WITHDRAW_AMOUNT_LIMIT} DP</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">审核触发比例</div>
+                            <div class="stat-value">${stats.config.WITHDRAW_REVIEW_RATIO}x</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">活跃用户数</div>
+                            <div class="stat-value">${stats.totalUsers}</div>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('withdrawSecurityStats').innerHTML = html;
+
+            } catch (err) {
+                console.error('加载提现安全统计失败:', err);
+            }
+        }
+
+        async function approveWithdraw(reviewId) {
+            const note = prompt('请输入审核通过备注（可选）:');
+            if (note === null) return; // 用户取消
+
+            try {
+                const res = await fetch(`${API_BASE}/withdraw-reviews/${reviewId}/approve?password=${ADMIN_PASSWORD}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ note: note || '审核通过' })
+                });
+                const data = await res.json();
+
+                if (!data.success) throw new Error(data.error);
+
+                showToast('✅ 审核通过，提现已执行', 'success');
+                showToast('交易哈希: ' + data.data.withdraw.txHash.substring(0, 20) + '...', 'success');
+                
+                // 刷新列表
+                setTimeout(() => loadWithdrawReviews(), 1000);
+
+            } catch (err) {
+                showToast('审核通过失败: ' + err.message, 'error');
+            }
+        }
+
+        async function rejectWithdraw(reviewId) {
+            const note = prompt('❗ 请输入拒绝原因（必填）:');
+            if (!note || note.trim() === '') {
+                showToast('必须提供拒绝原因', 'warning');
+                return;
+            }
+
+            if (!confirm(`确定要拒绝这个提现吗？\n原因: ${note}`)) return;
+
+            try {
+                const res = await fetch(`${API_BASE}/withdraw-reviews/${reviewId}/reject?password=${ADMIN_PASSWORD}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ note: note })
+                });
+                const data = await res.json();
+
+                if (!data.success) throw new Error(data.error);
+
+                showToast('✅ 已拒绝提现申请', 'success');
+                
+                // 刷新列表
+                setTimeout(() => loadWithdrawReviews(), 1000);
+
+            } catch (err) {
+                showToast('拒绝提现失败: ' + err.message, 'error');
+            }
+        }
+
+        async function viewReviewDetail(reviewId) {
+            try {
+                const res = await fetch(`${API_BASE}/withdraw-reviews/${reviewId}?password=${ADMIN_PASSWORD}`);
+                const data = await res.json();
+
+                if (!data.success) throw new Error(data.error);
+
+                const review = data.data.review;
+                const userInfo = data.data.userInfo;
+                const stats = data.data.withdrawStats;
+
+                let detail = `📋 审核详情\n\n`;
+                detail += `审核ID: ${review.id}\n`;
+                detail += `用户: ${userInfo ? `${userInfo.username} (UID: ${userInfo.uid})` : review.address}\n`;
+                detail += `金额: ${review.amount} DP\n`;
+                detail += `当前余额: ${data.data.currentBalance} DP\n`;
+                detail += `原因: ${review.reason}\n`;
+                detail += `状态: ${review.status}\n`;
+                detail += `申请时间: ${new Date(review.createdAt).toLocaleString('zh-CN')}\n`;
+                
+                if (review.reviewedAt) {
+                    detail += `\n审核时间: ${new Date(review.reviewedAt).toLocaleString('zh-CN')}\n`;
+                    detail += `审核人: ${review.reviewedBy}\n`;
+                    detail += `审核备注: ${review.reviewNote}\n`;
+                }
+
+                detail += `\n今日统计:\n`;
+                detail += `- 提现次数: ${stats.today.withdrawCount}\n`;
+                detail += `- 提现金额: ${stats.today.withdrawAmount} DP\n`;
+                detail += `- 充值金额: ${stats.today.depositAmount} DP\n`;
+
+                alert(detail);
+
+            } catch (err) {
+                showToast('查看详情失败: ' + err.message, 'error');
+            }
+        }
+
         // System
         async function loadConfig() {
             try {
@@ -1239,6 +1634,9 @@
                         break;
                     case 'game-control':
                         loadGameControl();
+                        break;
+                    case 'withdraw-reviews':
+                        loadWithdrawReviews();
                         break;
                 }
             }, 3000); // Refresh every 3 seconds
